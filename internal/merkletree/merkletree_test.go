@@ -16,7 +16,7 @@ func TestAppend(t *testing.T) {
 	if m.Len() != 0 {
 		t.Fatal("expected empty merkletree")
 	}
-	b1 := [hashLength]byte{1, 2, 3} // rest are zeros
+	b1 := []byte{1, 2, 3} // rest are zeros
 	if err := m.Append(b1); err != nil {
 		t.Error(err)
 	}
@@ -27,7 +27,7 @@ func TestAppend(t *testing.T) {
 
 func TestSummary(t *testing.T) {
 	m := merkletree.New()
-	b1 := [hashLength]byte{1, 2, 3} // rest are zeros
+	b1 := []byte{1, 2, 3}
 	if err := m.Append(b1); err != nil {
 		t.Fatal(err)
 	}
@@ -36,7 +36,7 @@ func TestSummary(t *testing.T) {
 		t.Fatal(err)
 	}
 	str := base64.RawURLEncoding.EncodeToString(s[:])
-	good1 := "q3dir6rpvXpwRwZynBycjmAmgtFVDRErpqUA9o-KKGLS9150t-smvUMFXlvd8u8URHoKaybZAwmHS2PzmiYZLg"
+	good1 := "wixj8lSLFdmnBhbGlJxYaCiN1SwMNmV-G7h3g3Yox6ZV8vFHlgRl61rf1y_2XVx7YPTYgSaQaOc1uAk4-P7b4A"
 	if str != good1 {
 		t.Errorf("expected %#v, got %#v", good1, str)
 	}
@@ -51,7 +51,7 @@ func TestSummary(t *testing.T) {
 		t.Fatal(err)
 	}
 	str = base64.RawURLEncoding.EncodeToString(s[:])
-	good101 := "Tbr2bI4gBhAdwb0KLgt677KMS2-WUGpWuCdaKlT_SNlxLVEte2WjkpCwfe9HxaC6vYsuLqQ5-ac7n7HiuARkLg"
+	good101 := "feJxwpLst4bh-4prEMa-Xcy6R6Tdk9w7sbmseq-goqzvJ_1PkmE5EjadvOD1L4SrY04nYyPM7yyWMRkZkumUWw"
 	if str != good101 {
 		t.Errorf("expected %#v, got %#v", good101, str)
 	}
