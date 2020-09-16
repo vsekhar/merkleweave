@@ -7,20 +7,20 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
-// hashLength is the number of bytes to read from the Shake hash.
-const hashLength = 64
+// HashLength is the number of bytes to read from the Shake hash.
+const HashLength = 64
 
 // MerkleTree is a simple Merkle Tree data structure.
 type MerkleTree struct {
 	data  [][]byte           // from users
-	nodes [][hashLength]byte // hashes of data and children
+	nodes [][HashLength]byte // hashes of data and children
 }
 
 // New returns a new empty MerkleTree.
 func New() *MerkleTree {
 	return &MerkleTree{
 		data:  make([][]byte, 0),
-		nodes: make([][hashLength]byte, 0),
+		nodes: make([][HashLength]byte, 0),
 	}
 }
 
@@ -62,7 +62,7 @@ func (m *MerkleTree) Append(b []byte) error {
 	}
 
 	// Store.
-	var node [hashLength]byte
+	var node [HashLength]byte
 	_, err = shaker.Read(node[:])
 	if err != nil {
 		return err
@@ -73,7 +73,7 @@ func (m *MerkleTree) Append(b []byte) error {
 }
 
 // Summary returns a hash of the MerkleTree.
-func (m *MerkleTree) Summary() (r [hashLength]byte, err error) {
+func (m *MerkleTree) Summary() (r [HashLength]byte, err error) {
 	ps := peaks(m.Len())
 	shaker := sha3.NewShake256()
 	for _, pos := range ps {
