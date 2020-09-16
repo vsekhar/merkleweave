@@ -51,20 +51,25 @@ func benchmarkAppend(b *testing.B, a appendFunc, d [records][recordLen]byte) {
 	wg.Wait()
 }
 
-func BenchmarkMerkleWeave(b *testing.B) {
-	m := merkleweave.New()
+func BenchmarkCompare(b *testing.B) {
 	d := testData()
-	benchmarkAppend(b, func(b []byte) error { return m.Append(b) }, d)
-}
 
-func BenchmarkMerkleTree(b *testing.B) {
-	m := merkletree.New()
+	t := merkletree.New()
 	mu := sync.Mutex{}
 	appendFunc := func(b []byte) error {
 		mu.Lock()
 		defer mu.Unlock()
-		return m.Append(b)
+		return t.Append(b)
 	}
-	d := testData()
-	benchmarkAppend(b, appendFunc, d)
+	b.Run("merkletree", func(b *testing.B) {
+		benchmarkAppend(b, appendFunc, d)
+	})
+
+	w := merkleweave.New()
+	appendFunc = func(b []byte) error {
+		return w.Append(b)
+	}
+	b.Run("merkleweave", func(b *testing.B) {
+		benchmarkAppend(b, appendFunc, d)
+	})
 }
