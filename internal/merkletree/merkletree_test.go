@@ -16,7 +16,7 @@ func TestAppend(t *testing.T) {
 	if m.Len() != 0 {
 		t.Fatal("expected empty merkletree")
 	}
-	b1 := []byte{1, 2, 3} // rest are zeros
+	b1 := []byte{1, 2, 3}
 	if err := m.Append(b1); err != nil {
 		t.Error(err)
 	}
