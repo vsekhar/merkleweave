@@ -84,3 +84,6 @@ func (m *MerkleTree) Summary() (r [HashLength]byte, err error) {
 	_, err = shaker.Read(r[:])
 	return
 }
+
+// TODO: ProveEntry
+// TODO: ProveSummary
