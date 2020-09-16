@@ -36,7 +36,7 @@ func (m *MerkleTree) At(pos int) []byte {
 }
 
 // Append adds an entry to the MerkleTree.
-func (m *MerkleTree) Append(b []byte) error {
+func (m *MerkleTree) Append(b []byte) {
 	pos := len(m.data)
 	h := height(pos)
 	shaker := sha3.NewShake256()
@@ -48,40 +48,41 @@ func (m *MerkleTree) Append(b []byte) error {
 		right := m.nodes[cs[1]][:]
 
 		if _, err := shaker.Write(left); err != nil {
-			return err
+			panic(err)
 		}
 		if _, err := shaker.Write(right); err != nil {
-			return err
+			panic(err)
 		}
 	}
 
 	// Hash the current node's data.
 	_, err := shaker.Write(b[:])
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	// Store.
 	var node [HashLength]byte
 	_, err = shaker.Read(node[:])
 	if err != nil {
-		return err
+		panic(err)
 	}
 	m.data = append(m.data, b)
 	m.nodes = append(m.nodes, node)
-	return nil
 }
 
 // Summary returns a hash of the MerkleTree.
-func (m *MerkleTree) Summary() (r [HashLength]byte, err error) {
+func (m *MerkleTree) Summary() (r [HashLength]byte) {
 	ps := peaks(m.Len())
 	shaker := sha3.NewShake256()
 	for _, pos := range ps {
-		if _, err = shaker.Write(m.nodes[pos][:]); err != nil {
-			return
+		if _, err := shaker.Write(m.nodes[pos][:]); err != nil {
+			panic(err)
 		}
 	}
-	_, err = shaker.Read(r[:])
+	if _, err := shaker.Read(r[:]); err != nil {
+		panic(err)
+	}
 	return
 }
 
