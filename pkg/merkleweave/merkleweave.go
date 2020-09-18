@@ -5,14 +5,16 @@ package merkleweave
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
 	"sort"
+	"strings"
 	"sync"
 
 	"github.com/vsekhar/merkleweave/internal/merkletree"
 )
 
-const prefixBytes = 2
+const prefixBytes = 1
 const numTrees = 1 << (prefixBytes * 8)
 const numCrossTrees = 2
 const minDataLen = prefixBytes * numCrossTrees
@@ -50,6 +52,27 @@ func fromInt(n int) prefix {
 	return r
 }
 
+func toInt(p prefix) int {
+	r := 0
+	for i := 0; i < prefixBytes; i++ {
+		r += int(p[i]) << (i * 8)
+	}
+	return r
+}
+
+func fromHex(s string) prefix {
+	r := prefix{}
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		panic(err)
+	}
+	if len(b) != prefixBytes {
+		panic(fmt.Sprintf("expected %d bytes for prefix, got %d", prefixBytes, len(b)))
+	}
+	copy(r[:], b)
+	return r
+}
+
 func prefixesOf(b []byte) [numCrossTrees]prefix {
 	var r [numCrossTrees]prefix
 	for i := 0; i < numCrossTrees; i++ {
@@ -63,9 +86,6 @@ func prefixesOf(b []byte) [numCrossTrees]prefix {
 	}
 	return r
 }
-
-// SaltLen is the number of bytes of random data generated when adding an entry.
-const SaltLen = 64
 
 type tree struct {
 	m *sync.Mutex
@@ -92,10 +112,25 @@ func New() *MerkleWeave {
 	return ret
 }
 
+// forEach runs f on each tree in parallel.
+func (m *MerkleWeave) forEach(f func(i int, t *merkletree.MerkleTree)) {
+	wg := sync.WaitGroup{}
+	wg.Add(len(m.ts))
+	for p, t := range m.ts {
+		go func(p prefix, t tree) {
+			t.m.Lock()
+			defer t.m.Unlock()
+			f(toInt(p), t.t)
+			wg.Done()
+		}(p, t)
+	}
+	wg.Wait()
+}
+
 // Append adds an entry to a MerkleWeave.
-func (m *MerkleWeave) Append(b []byte) error {
+func (m *MerkleWeave) Append(b []byte) {
 	if len(b) < minDataLen {
-		return fmt.Errorf("at least %d bytes needed, got %d bytes", minDataLen, len(b))
+		panic(fmt.Sprintf("at least %d bytes needed, got %d bytes", minDataLen, len(b)))
 	}
 	ps := prefixesOf(b)
 
@@ -117,12 +152,72 @@ func (m *MerkleWeave) Append(b []byte) error {
 
 	for i := 0; i < numCrossTrees; i++ {
 		t := m.ts[ps[i]].t
-		if err := t.Append(b); err != nil {
-			// If an error occurs, spurious entries in other trees may be left
-			// behind but this is ok.
-			return err
+		t.Append(b)
+	}
+}
+
+// ApproxLen returns an approximate number of entries in the Merkle weave. The Merkle weave can contain spurious entries
+func (m *MerkleWeave) ApproxLen() int {
+	lens := [numTrees]int{}
+	m.forEach(func(i int, t *merkletree.MerkleTree) {
+		lens[i] = t.Len()
+	})
+	l := 0
+	for _, i := range lens {
+		l += i
+	}
+	return l
+}
+
+// Summary is a summary of a Merkle weave.
+type Summary struct {
+	ss [numTrees]merkletree.Summary
+}
+
+// Equals returns true if the Summary's are equal.
+func (s *Summary) Equals(s2 *Summary) bool {
+	for i, t := range s.ss {
+		if !t.Equals(s2.ss[i]) {
+			return false
 		}
 	}
-
-	return nil
+	return true
 }
+
+// ShortString returns a short string representation of a Summary.
+//
+// Empty sub-trees (length of zero, fixed hash) are skipped. Hashes are
+// truncated to 8 base64-encoded characters.
+func (s *Summary) ShortString() string {
+	var b strings.Builder
+	for i := 0; i < numTrees; i++ {
+		if s.ss[i].N == 0 {
+			continue
+		}
+		prefix := fromInt(i)
+		fmt.Fprintf(&b, "%x:%s; ", prefix, s.ss[i].String())
+	}
+	return b.String()
+}
+
+// Summary returns a summary of the Merkle weave.
+func (m *MerkleWeave) Summary() Summary {
+	r := Summary{}
+	m.forEach(func(i int, t *merkletree.MerkleTree) {
+		r.ss[i] = t.Summary()
+		return
+	})
+	return r
+}
+
+// for testing
+func newEmptySummary() Summary {
+	s := Summary{}
+	for i := range s.ss {
+		s.ss[i] = merkletree.EmptyTreeSummary
+	}
+	return s
+}
+
+// TODO: ProveEntry
+// TODO: ProveSummary

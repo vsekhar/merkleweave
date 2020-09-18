@@ -4,6 +4,10 @@
 package merkletree
 
 import (
+	"bytes"
+	"encoding/base64"
+	"fmt"
+
 	"golang.org/x/crypto/sha3"
 )
 
@@ -71,20 +75,52 @@ func (m *MerkleTree) Append(b []byte) {
 	m.nodes = append(m.nodes, node)
 }
 
-// Summary returns the length and hash of the MerkleTree.
-func (m *MerkleTree) Summary() (len int, r [HashLength]byte) {
-	len = m.Len()
-	ps := peaks(len)
+// Summary is a summary of a tree.
+type Summary struct {
+	N       int
+	Summary [HashLength]byte
+}
+
+// Equals returns true if the summaries are equal.
+func (s Summary) Equals(s2 Summary) bool {
+	if s.N != s2.N {
+		return false
+	}
+	if bytes.Compare(s.Summary[:], s2.Summary[:]) != 0 {
+		return false
+	}
+	return true
+}
+
+// ShortString returns a short string representation of a Summary.
+//
+// Hashes are truncated to 8 base64-encoded characters.
+func (s Summary) String() string {
+	hash := base64.RawURLEncoding.EncodeToString(s.Summary[:])
+	return fmt.Sprintf("%d:%s", s.N, hash)
+}
+
+// Summary returns the length and hash of the Merkle tree.
+func (m *MerkleTree) Summary() Summary {
+	s := Summary{}
+	s.N = m.Len()
+	ps := peaks(s.N)
 	shaker := sha3.NewShake256()
 	for _, pos := range ps {
 		if _, err := shaker.Write(m.nodes[pos][:]); err != nil {
 			panic(err)
 		}
 	}
-	if _, err := shaker.Read(r[:]); err != nil {
+	if _, err := shaker.Read(s.Summary[:]); err != nil {
 		panic(err)
 	}
-	return
+	return s
+}
+
+// EmptyTreeSummary is the fixed summary of an empty Merkle tree.
+var EmptyTreeSummary Summary = Summary{
+	N:       0,
+	Summary: [HashLength]byte{0x46, 0xb9, 0xdd, 0x2b, 0xb, 0xa8, 0x8d, 0x13, 0x23, 0x3b, 0x3f, 0xeb, 0x74, 0x3e, 0xeb, 0x24, 0x3f, 0xcd, 0x52, 0xea, 0x62, 0xb8, 0x1b, 0x82, 0xb5, 0xc, 0x27, 0x64, 0x6e, 0xd5, 0x76, 0x2f, 0xd7, 0x5d, 0xc4, 0xdd, 0xd8, 0xc0, 0xf2, 0x0, 0xcb, 0x5, 0x1, 0x9d, 0x67, 0xb5, 0x92, 0xf6, 0xfc, 0x82, 0x1c, 0x49, 0x47, 0x9a, 0xb4, 0x86, 0x40, 0x29, 0x2e, 0xac, 0xb3, 0xb7, 0xc4, 0xbe},
 }
 
 // TODO: ProveEntry
