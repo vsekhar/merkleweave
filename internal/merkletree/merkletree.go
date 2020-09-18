@@ -71,9 +71,10 @@ func (m *MerkleTree) Append(b []byte) {
 	m.nodes = append(m.nodes, node)
 }
 
-// Summary returns a hash of the MerkleTree.
-func (m *MerkleTree) Summary() (r [HashLength]byte) {
-	ps := peaks(m.Len())
+// Summary returns the length and hash of the MerkleTree.
+func (m *MerkleTree) Summary() (len int, r [HashLength]byte) {
+	len = m.Len()
+	ps := peaks(len)
 	shaker := sha3.NewShake256()
 	for _, pos := range ps {
 		if _, err := shaker.Write(m.nodes[pos][:]); err != nil {

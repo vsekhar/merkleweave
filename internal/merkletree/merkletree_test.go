@@ -27,18 +27,24 @@ func TestSummary(t *testing.T) {
 	m := merkletree.New()
 	b1 := []byte{1, 2, 3}
 	m.Append(b1)
-	s := m.Summary()
-
+	n, s := m.Summary()
+	if n != 1 {
+		t.Errorf("expected length of %d, got %d", 1, n)
+	}
 	str := base64.RawURLEncoding.EncodeToString(s[:])
 	good1 := "wixj8lSLFdmnBhbGlJxYaCiN1SwMNmV-G7h3g3Yox6ZV8vFHlgRl61rf1y_2XVx7YPTYgSaQaOc1uAk4-P7b4A"
 	if str != good1 {
 		t.Errorf("expected %#v, got %#v", good1, str)
 	}
 
-	for i := 0; i < 100; i++ {
+	times := 100
+	for i := 0; i < times; i++ {
 		m.Append(b1)
 	}
-	s = m.Summary()
+	n, s = m.Summary()
+	if n != times+1 {
+		t.Errorf("expected length of %d, got %d", times*len(b1), n)
+	}
 	str = base64.RawURLEncoding.EncodeToString(s[:])
 	good101 := "feJxwpLst4bh-4prEMa-Xcy6R6Tdk9w7sbmseq-goqzvJ_1PkmE5EjadvOD1L4SrY04nYyPM7yyWMRkZkumUWw"
 	if str != good101 {
