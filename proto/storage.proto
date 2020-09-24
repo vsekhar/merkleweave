@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package merkleweave.protobuf;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/vsekhar/merkleweave/pkg/merkleweave/storagepb";
+
+// StorageEntry is an entry in the Merkle tree formatted for storage.
+//
+// StorageEntry's are typically stored indexed by prefix:seqno where prefix is
+// some fixed length prefix of node_sha3256 and seqno is a sequential ordering
+// of entries with that prefix.
+message StorageEntry {
+    google.protobuf.Timestamp timestamp = 1;
+
+    // data_sha3256 = hash(user_data, server_salt)
+    // server_salt is returned to the user.
+    bytes data_sha3256 = 2;
+
+    // node_sha3256 = hash(data_sha3256, prev.node_sha3256, prev.timestamp, left_child.node_sha3256, left_child.timestamp)
+    bytes node_sha3256 = 3;
+}

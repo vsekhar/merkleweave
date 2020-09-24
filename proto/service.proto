@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package merkleweave.protobuf;
+
+// import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/vsekhar/merkleweave/pkg/merkleweave/servicepb";
+
+message Request {}
+
+message Response {}
+
+service Fabula {
+    rpc Hello(Request) returns (Response) {}
+}
