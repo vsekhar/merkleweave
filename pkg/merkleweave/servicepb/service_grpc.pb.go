@@ -17,7 +17,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type FabulaClient interface {
-	Hello(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error)
+	WeaveSummary(ctx context.Context, in *WeaveSummaryRequest, opts ...grpc.CallOption) (*WeaveSummaryResponse, error)
 }
 
 type fabulaClient struct {
@@ -28,13 +28,13 @@ func NewFabulaClient(cc grpc.ClientConnInterface) FabulaClient {
 	return &fabulaClient{cc}
 }
 
-var fabulaHelloStreamDesc = &grpc.StreamDesc{
-	StreamName: "Hello",
+var fabulaWeaveSummaryStreamDesc = &grpc.StreamDesc{
+	StreamName: "WeaveSummary",
 }
 
-func (c *fabulaClient) Hello(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error) {
-	out := new(Response)
-	err := c.cc.Invoke(ctx, "/merkleweave.protobuf.Fabula/Hello", in, out, opts...)
+func (c *fabulaClient) WeaveSummary(ctx context.Context, in *WeaveSummaryRequest, opts ...grpc.CallOption) (*WeaveSummaryResponse, error) {
+	out := new(WeaveSummaryResponse)
+	err := c.cc.Invoke(ctx, "/merkleweave.protobuf.Fabula/WeaveSummary", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -46,23 +46,23 @@ func (c *fabulaClient) Hello(ctx context.Context, in *Request, opts ...grpc.Call
 // RegisterFabulaService is called.  Any unassigned fields will result in the
 // handler for that method returning an Unimplemented error.
 type FabulaService struct {
-	Hello func(context.Context, *Request) (*Response, error)
+	WeaveSummary func(context.Context, *WeaveSummaryRequest) (*WeaveSummaryResponse, error)
 }
 
-func (s *FabulaService) hello(_ interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Request)
+func (s *FabulaService) weaveSummary(_ interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WeaveSummaryRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return s.Hello(ctx, in)
+		return s.WeaveSummary(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     s,
-		FullMethod: "/merkleweave.protobuf.Fabula/Hello",
+		FullMethod: "/merkleweave.protobuf.Fabula/WeaveSummary",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return s.Hello(ctx, req.(*Request))
+		return s.WeaveSummary(ctx, req.(*WeaveSummaryRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -70,17 +70,17 @@ func (s *FabulaService) hello(_ interface{}, ctx context.Context, dec func(inter
 // RegisterFabulaService registers a service implementation with a gRPC server.
 func RegisterFabulaService(s grpc.ServiceRegistrar, srv *FabulaService) {
 	srvCopy := *srv
-	if srvCopy.Hello == nil {
-		srvCopy.Hello = func(context.Context, *Request) (*Response, error) {
-			return nil, status.Errorf(codes.Unimplemented, "method Hello not implemented")
+	if srvCopy.WeaveSummary == nil {
+		srvCopy.WeaveSummary = func(context.Context, *WeaveSummaryRequest) (*WeaveSummaryResponse, error) {
+			return nil, status.Errorf(codes.Unimplemented, "method WeaveSummary not implemented")
 		}
 	}
 	sd := grpc.ServiceDesc{
 		ServiceName: "merkleweave.protobuf.Fabula",
 		Methods: []grpc.MethodDesc{
 			{
-				MethodName: "Hello",
-				Handler:    srvCopy.hello,
+				MethodName: "WeaveSummary",
+				Handler:    srvCopy.weaveSummary,
 			},
 		},
 		Streams:  []grpc.StreamDesc{},

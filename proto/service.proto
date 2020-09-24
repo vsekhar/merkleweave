@@ -2,14 +2,50 @@ syntax = "proto3";
 
 package merkleweave.protobuf;
 
-// import "google/protobuf/timestamp.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/vsekhar/merkleweave/pkg/merkleweave/servicepb";
 
 message Request {}
 
-message Response {}
+message TreeSummaryResponse {
+    uint64 size = 1;
+
+    // timestamp of last entry in the tree.
+    google.protobuf.Timestamp last = 2;
+
+    // hashes is a set of hashes of all peaks of an MMR of a given size.
+    repeated bytes hashes = 3;
+}
+
+message PrefixTreeSummaryResponse {
+    bytes prefix = 1;
+    TreeSummaryResponse summary = 2;
+}
+
+message WeaveSummaryRequest {
+    // minimum timestamp of trees in summary response, none if omitted.
+    google.protobuf.Timestamp minTimestamp = 1;
+
+    // prefixes of trees that must have ts > minTimestamp, all if omitted.
+    //
+    // if both prefixesWithMinTimestamp and prefixesToReturn are non-empty and
+    // a prefix appears in prefixesWithMinTimestamp but does not appear in
+    // prefixesToReturn, then it is ignored for the purpose of establishing the
+    // minimum timestamp.
+    //
+    // Weave summary requests can be billed based on the number of prefixes
+    // with min timestamps.
+    repeated bytes prefixesWithMinTimestamp = 2;
+
+    // prefixes to return in the summary, all if omitted.
+    repeated bytes prefixesToReturn = 3;
+}
+
+message WeaveSummaryResponse {
+    repeated PrefixTreeSummaryResponse trees = 1;
+}
 
 service Fabula {
-    rpc Hello(Request) returns (Response) {}
+    rpc WeaveSummary(WeaveSummaryRequest) returns (WeaveSummaryResponse) {}
 }
