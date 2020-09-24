@@ -29,7 +29,7 @@ const _ = proto.ProtoPackageIsVersion4
 // StorageEntry is an entry in the Merkle tree formatted for storage.
 //
 // StorageEntry's are typically stored indexed by prefix:seqno where prefix is
-// some fixed length prefix of node_sha3256 and seqno is a sequential ordering
+// some fixed length prefix of data_sha3256 and seqno is a sequential ordering
 // of entries with that prefix.
 type StorageEntry struct {
 	state         protoimpl.MessageState
