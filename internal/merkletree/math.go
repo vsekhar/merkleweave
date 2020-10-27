@@ -84,7 +84,39 @@ func path(pos int) (p []pathEntry) {
 		}
 		p = append(p, cpe)
 	}
-	return nil
+	panic("not fully implemented")
+}
+
+// proof returns a set of node indexes needed to prove the inclusion of a
+// summary of MMR of size from to a summary of MMR of size to.
+func proof(from, to int) (nodes []int) {
+	if to < from {
+		panic("reverse proof requested")
+	}
+	fromPeaks := peaks(from)
+	toPeaks := peaks(to)
+
+	// skip matching peaks
+	for len(fromPeaks) != 0 && len(toPeaks) != 0 {
+		if fromPeaks[0] == toPeaks[0] {
+			fromPeaks, toPeaks = fromPeaks[1:], toPeaks[1:]
+		}
+	}
+
+	if len(fromPeaks) == 0 {
+		// nothing to prove, that is fromPeaks is a subset of toPeaks
+		return
+	}
+
+	// remaining fromPeaks should be fully contained under the first remaining
+	// toPeak.
+	toPeak := toPeaks[0]
+	// c := toPeak
+	for fromPeaks[0] != toPeak {
+		// walk down left children until we find one, then walk down right children
+		// i think...
+	}
+	return
 }
 
 func intSliceEqual(a, b []int) bool {

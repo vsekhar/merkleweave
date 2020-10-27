@@ -4,6 +4,7 @@ package merkletree
 // independent of any specific implementation of MMRs.
 
 import (
+	"encoding/binary"
 	"testing"
 )
 
@@ -48,6 +49,19 @@ func TestPeaks(t *testing.T) {
 		{7, 6},
 		{8, 6, 7},
 		{9, 6, 7, 8},
+		{10, 6, 9},
+
+		{20, 14, 17, 18, 19},
+		{40, 30, 37, 38, 39},
+		{80, 62, 77, 78, 79},
+		{160, 126, 157, 158, 159},
+		{202, 126, 189, 196, 199, 200, 201},
+		{217, 126, 189, 204, 211, 214, 215, 216},
+		{248, 126, 189, 220, 235, 242, 245, 246, 247},
+		{255, 254},
+		{345, 254, 317, 332, 339, 342, 343, 344},
+		{481, 254, 381, 444, 475, 478, 479, 480},
+		{511, 510},
 	}
 	for _, c := range table {
 		in, out := c[0], c[1:]
@@ -105,6 +119,15 @@ func TestPath(t *testing.T) {
 		1: {{}, {}},
 	}
 	// compare arrays of pathEntry's: p, expected
+}
+
+func TestProof(t *testing.T) {
+	t.Errorf("%v", proof(3, 19))
+}
+
+func TestSize(t *testing.T) {
+	var i uint64
+	t.Errorf("%d", binary.Size(i))
 }
 
 type testcase struct {
